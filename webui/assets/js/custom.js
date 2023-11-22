@@ -26,18 +26,18 @@ function backToTop() {
 
 
 ///
-/// Load Images functions
+/// Load Images
 ///
-function loadImagePng() {
-  var url = "/api/images/png";
-  generateGallery(url);
-}
-function loadImageGif() {
-  var url = "/api/images/gif";
-  generateGallery(url);
-}
-function loadImageAll() {
+function loadImages(img) {
   var url = "/api/images";
+  switch (img) {
+    case "PNG":
+      url = "/api/images/png";
+      break;
+    case "GIF":
+      url = "/api/images/gif";
+      break;
+  }
   generateGallery(url);
 }
 
@@ -58,14 +58,16 @@ function generateGallery(api) {
               <img src="${image.Path}" class="card-img-top h-100 border-bottom border-1 rounded-0" alt="${image.Name}" />
               </div>
               <div class="card-body d-flex justify-content-center">
-                <a class="btn btn-primary" >
+                <button class="btn btn-primary" hx-post="/api/draw" hx-trigger="click"  hx-vals='${JSON.stringify(image)}' >
                   Apply
-                </a>
+                </button>
               </div>
             </div>
           </div>`;
       })
       gallery.innerHTML = html;
+      // Re-process new content to enable htmx JS
+      htmx.process(htmx.find('#cardImages'))
     })
     .catch(error => console.error(error));
 }
