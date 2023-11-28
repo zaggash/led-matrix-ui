@@ -45,18 +45,9 @@
                     <button
                       type="button"
                       class="dropdown-item"
-                      id="btn-all"
-                      onclick="loadImages();"
-                    >
-                      All
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      class="dropdown-item"
-                      id="btn-all"
-                      onclick='loadImages("PNG");'
+                      hx-get="/api/images/static"
+                      hx-trigger="click"
+                      hx-target="#cardImages"
                     >
                       Static
                     </button>
@@ -65,8 +56,9 @@
                     <button
                       type="button"
                       class="dropdown-item"
-                      id="btn-gif"
-                      onclick='loadImages("GIF");'
+                      hx-get="/api/images/animated"
+                      hx-trigger="click"
+                      hx-target="#cardImages"
                     >
                       Animated
                     </button>

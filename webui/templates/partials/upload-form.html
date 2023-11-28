@@ -12,21 +12,34 @@
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="staticBackdropLabel">
-          Add a PNG or GIF file
+          Add an image file
         </h1>
         <button
           type="button"
+          hx-on:click="htmx.addClass(htmx.find('#form-answer'), 'd-none', 1000);"
           class="btn-close"
           data-bs-dismiss="modal"
           aria-label="Close"
         ></button>
       </div>
       <div class="modal-body">
-        <form action="/api/upload" method="POST">
+        <form
+          hx-encoding="multipart/form-data"
+          hx-on::after-request="this.reset()"
+        >
           <div class="input-group">
             <input type="file" name="file" class="form-control" />
-            <button type="submit" class="btn btn-primary">Send</button>
+            <button
+              hx-post="/api/upload"
+              hx-target="#form-answer"
+              hx-swap="outerHTML"
+              hx-include="[name='file']"
+              class="btn btn-primary"
+            >
+              Send
+            </button>
           </div>
+          <div id="form-answer"></div>
         </form>
       </div>
     </div>

@@ -1,25 +1,20 @@
 package main
 
 import (
-	"flag"
 	"log"
 
-	api "github.com/zaggash/led-matrix-ui/api"
-	"github.com/zaggash/led-matrix-ui/display"
+	"github.com/zaggash/led-matrix-ui/api"
+	"github.com/zaggash/led-matrix-ui/utils"
 )
 
-var pixelFolder = flag.String("image-folder", "./PixelImages/", "Pixel logos folder path")
-
 func main() {
+	utils.InitFlags()
 
-	displayConfig, err := display.New()
+	displayConfig, err := utils.NewDisplay()
 	if err != nil {
 		log.Panicln("Display error", err)
 	}
 
-	api.New(displayConfig).Run(*pixelFolder)
-}
+	api.New(displayConfig).Run()
 
-func init() {
-	flag.Parse()
 }

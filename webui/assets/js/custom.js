@@ -26,48 +26,25 @@ function backToTop() {
 
 
 ///
-/// Load Images
+/// HTMX configuration
 ///
-function loadImages(img) {
-  var url = "/api/images";
-  switch (img) {
-    case "PNG":
-      url = "/api/images/png";
-      break;
-    case "GIF":
-      url = "/api/images/gif";
-      break;
+document.body.addEventListener('htmx:beforeSwap', function (evt) {
+  if (evt.detail.xhr.status === 422) {
+    evt.detail.shouldSwap = true;
+    evt.detail.isError = false;
+  } else if (evt.detail.xhr.status === 415) {
+    vt.detail.shouldSwap = true;
+    evt.detail.isError = false;
   }
-  generateGallery(url);
-}
+});
 
-function generateGallery(api) {
-  let gallery = document.querySelector('#cardImages');
-  let html = '';
-  fetch(api)
-    .then(response => response.json())
-    .then(data => {
-      data.forEach(image => {
-        html +=
-          `<div class="col col-3 mb-3">
-            <div class="card h-100 text-center">
-              <div class="card-header text-nowrap overflow-auto">
-                ${image.Name}
-              </div>
-              <div class="ratio ratio-1x1">
-              <img src="${image.Path}" class="card-img-top h-100 border-bottom border-1 rounded-0" alt="${image.Name}" />
-              </div>
-              <div class="card-body d-flex justify-content-center">
-                <button class="btn btn-primary" hx-post="/api/draw" hx-trigger="click"  hx-vals='${JSON.stringify(image)}' >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </div>`;
-      })
-      gallery.innerHTML = html;
-      // Re-process new content to enable htmx JS
-      htmx.process(htmx.find('#cardImages'))
-    })
-    .catch(error => console.error(error));
-}
+///
+/// Notification Toasts 
+///
+const toastElement = document.getElementById("toast")
+const toastBody = document.getElementById("toast-body")
+const toast = new bootstrap.Toast(toastElement, { delay: 2000 })
+htmx.on("showMessage", (e) => {
+  toastBody.innerText = e.detail.value
+  toast.show()
+})
