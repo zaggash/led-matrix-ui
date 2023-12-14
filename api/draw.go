@@ -3,11 +3,9 @@ package api
 import (
 	"image"
 	"image/draw"
-	"image/gif"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
@@ -27,11 +25,13 @@ func (d *Display) drawImage(ctx *gin.Context) {
 	imgName := ctx.PostForm("name")
 	paramType := ctx.Param("type")
 
+	// Clear display
 	if d.Channel != nil {
-		close(d.Channel)
+		d.Channel <- true
 	}
 	d.Toolkit.Canvas.Clear()
 
+	// Open requested image
 	f, err := os.Open(imgPath)
 	if err != nil {
 		log.Fatalln(err)
@@ -51,16 +51,19 @@ func (d *Display) drawImage(ctx *gin.Context) {
 			return
 		}
 	case "animated":
-		gif, err := decodeGif(f)
+		w, h := d.Matrix.Geometry()
+		d.Toolkit.Transform = func(img image.Image) *image.NRGBA {
+			//return imaging.Fit(img, w, h, imaging.Lanczos)
+			return imaging.Fill(img, w, h, imaging.Center, imaging.Lanczos)
+		}
+		d.Channel, err = d.Toolkit.PlayGIF(f)
 		if err != nil {
 			log.Panicln(err)
 			return
 		}
-		d.Channel = drawGif(d, gif)
-	default:
-		log.Fatalln("Nothing...")
 	}
 
+	// Send Frontend result
 	send := `{"showMessage": "` + imgName + ` displayed."}`
 	http_code := http.StatusOK
 	if d.Matrix.Render() != nil {
@@ -72,6 +75,7 @@ func (d *Display) drawImage(ctx *gin.Context) {
 	ctx.Data(http_code, "text/html", nil)
 }
 
+// Decode Static image
 func decodeImage(file *os.File) (image.Image, error) {
 	img, _, err := image.Decode(file)
 	if err != nil {
@@ -80,55 +84,10 @@ func decodeImage(file *os.File) (image.Image, error) {
 	return img, nil
 }
 
-func decodeGif(file *os.File) (*gif.GIF, error) {
-	gif, err := gif.DecodeAll(file)
-	if err != nil {
-		return nil, err
-	}
-	return gif, nil
-}
-
+// Draw static image
 func drawImage(d *Display, img image.Image) error {
 	w, h := d.Matrix.Geometry()
 	img = imaging.Fill(img, w, h, imaging.Center, imaging.Lanczos)
 	draw.Draw(d.Toolkit.Canvas, d.Toolkit.Canvas.Bounds(), img, image.Point{}, draw.Over)
 	return nil
-}
-
-func drawGif(d *Display, gif *gif.GIF) chan bool {
-	quit := make(chan bool)
-
-	loop := 0
-	delays := make([]time.Duration, len(gif.Delay))
-	images := make([]image.Image, len(gif.Image))
-	for i, image := range gif.Image {
-		images[i] = image
-		delays[i] = time.Millisecond * time.Duration(gif.Delay[i]) * 10
-	}
-
-	go func() {
-		l := len(images)
-		i := 0
-		for {
-			select {
-			case <-quit:
-				return
-			default:
-				start := time.Now()
-				defer func() { time.Sleep(delays[i] - time.Since(start)) }()
-				drawImage(d, images[i])
-			}
-
-			i++
-			if i > l-1 {
-				if loop == 0 {
-					i = 0
-					continue
-				}
-				break
-			}
-		}
-	}()
-
-	return quit
 }
