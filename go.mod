@@ -4,8 +4,6 @@ go 1.21
 
 toolchain go1.21.4
 
-replace github.com/zaggash/led-matrix-ui => ./
-
 replace github.com/zaggash/go-rpi-rgb-led-matrix => ../go-rpi-rgb-led-matrix
 
 require (
