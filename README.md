@@ -40,4 +40,11 @@ cd $WORKDIR/led-matrix-ui/
 ./build.sh
 ```
 
+TODO
+ * Split build action with matrix to build more rpi devices
+ * Set variables for:
+   - Define Zig version
+   - artifact names
+   - CC and CXX Zig override
+
 __Please feel free to report any issues or suggestions__

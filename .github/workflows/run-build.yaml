@@ -1,0 +1,66 @@
+---
+name: Binary build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: RPI0 Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          path: 'led-matrix-ui'
+      - name: Checkout go-rpi-rgb-led-matrix
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          repository: 'zaggash/go-rpi-rgb-led-matrix'
+          path: 'go-rpi-rgb-led-matrix/'
+          submodules: 'recursive'
+
+      - name: Setup Go    
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+        with:
+          go-version-file: 'led-matrix-ui/go.mod'
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@6fede2f0550d71291c0accf2834b216e69a2d67a
+        with:
+          zig-version: '0.11.0'
+
+      - name: Building rpi-rgb-led-matrix
+        run: |
+          cd go-rpi-rgb-led-matrix/lib/rpi-rgb-led-matrix/lib/
+          make \
+            CC="zig cc -target arm-linux-gnueabihf -march=arm1176jz_s -mfpu=vfp -mfloat-abi=hard" \
+            CXX="zig c++ -target arm-linux-gnueabihf -march=arm1176jzf_s -mfpu=vfp -mfloat-abi=hard"
+          
+      - name: Building led-matrix-ui Binary
+        run: |
+          cd led-matrix-ui
+          ./build.sh
+      
+      - name: Generate Token
+        uses: tibdex/github-app-token@v2
+        id: generate-token
+        with:
+          app_id: ${{ secrets.app_id }}
+          private_key: ${{ secrets.app_private_key }}
+      
+      - name: Create release and upload artifacts
+        uses: ncipollo/release-action@v1
+        with:
+          token: "${{ steps.generate-token.outputs.token }}"
+          artifactErrorsFailBuild: true
+          removeArtifacts: true
+          allowUpdates: true
+          generateReleaseNotes: true
+          tag: latest
+          commit: ${{ env.GITHUB_SHA }}
+          name: "Latest dev build"
+          artifacts: "./led-matrix-ui/matrix-led-ui_armv6"
+          body: |
+            Latest Dev build
