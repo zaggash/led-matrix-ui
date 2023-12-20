@@ -6,4 +6,4 @@ GOARM=6 \
  CC="zig cc -target arm-linux-gnueabihf -march=arm1176jz_s -mfpu=vfp -mfloat-abi=hard" \
  CXX="zig c++ -target arm-linux-gnueabihf -march=arm1176jzf_s -mfpu=vfp -mfloat-abi=hard" \
   go build -trimpath -ldflags="-w -s" \
-    -o matrix-led-ui-bin main.go
+    -o matrix-led-ui_armv6 main.go
