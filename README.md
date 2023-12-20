@@ -40,4 +40,7 @@ cd $WORKDIR/led-matrix-ui/
 ./build.sh
 ```
 
+TODO
+ * Split build action with matrix to build more rpi device
+
 __Please feel free to report any issues or suggestions__
